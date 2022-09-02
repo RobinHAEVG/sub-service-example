@@ -30,8 +30,12 @@ func (sc *ServiceC) Run(ctx context.Context, wg *sync.WaitGroup, logger *logrus.
 
 	go func() {
 		<-ctx.Done()
+		
+		// give the server 10 seconds to shut down
+		ctx2, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		defer cancel()
 
-		if err := srv.Shutdown(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		if err := srv.Shutdown(ctx2); err != nil && !errors.Is(err, context.Canceled) {
 			fmt.Printf("failed to shut down Service C server: %s\n", err.Error())
 		}
 	}()
