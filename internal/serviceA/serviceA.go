@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"subServiceSystem/internal/certmgr"
 	"subServiceSystem/internal/config"
@@ -29,8 +30,12 @@ func (sa *ServiceA) Run(ctx context.Context, wg *sync.WaitGroup, logger *logrus.
 
 	go func() {
 		<-ctx.Done()
-
-		if err := srv.Shutdown(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		
+		// give the server 10 seconds to shut down
+		ctx2, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		defer cancel()
+		
+		if err := srv.Shutdown(ctx2); err != nil && !errors.Is(err, context.Canceled) {
 			fmt.Printf("failed to shut down Service A server: %s\n", err.Error())
 		}
 	}()
